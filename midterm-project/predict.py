@@ -103,7 +103,7 @@ sample_input = {
     "hba1c_level": 6.7,
     "blood_glucose_level": 210
 }
-print(predict_diabetes(sample_input))
+#print(predict_diabetes(sample_input))
 
 def predict_single(patient):
         result = pipeline.predict_proba(patient)[0, 1]
