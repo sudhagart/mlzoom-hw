@@ -29,8 +29,21 @@ URL: https://www.kaggle.com/datasets/priyamchoksi/100000-diabetes-clinical-datas
 - diabetes 2 0 int64
 
 ### Analysis Results from various models
-Linear Regression ROC AUC: 0.804, RMSE: 0.207
-Decision Tree --- ROC AUC: 0.967, RMSE: 0.161
-Random Forest --- ROC AUC: 0.969, RMSE: 0.161
-XGBoost Model --- ROC AUC: 0.973, RMSE: 0.158 
+- Linear Regression ROC AUC: 0.804, RMSE: 0.207
+- Decision Tree --- ROC AUC: 0.967, RMSE: 0.161
+- Random Forest --- ROC AUC: 0.969, RMSE: 0.161
+- XGBoost Model --- ROC AUC: 0.973, RMSE: 0.158 
 
+### Requirements
+- Internet access to download the dataset from Kaggle
+
+### Training the model
+- Checkout the repo
+- cd midterm-project
+- uv sync 
+- uv run python train.py 
+
+### Containerizing the model in docker and running it
+- After the model is trained
+- docker build -t diabetes-prediction .
+- docker run -it --rm -p 9696:9696 diabetes-prediction
