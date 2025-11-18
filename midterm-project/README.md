@@ -47,3 +47,33 @@ URL: https://www.kaggle.com/datasets/priyamchoksi/100000-diabetes-clinical-datas
 - After the model is trained
 - docker build -t diabetes-prediction .
 - docker run -it --rm -p 9696:9696 diabetes-prediction
+
+### FLY Hosting Live
+- Go to https://quiet-star-7278.fly.dev/docs
+- Try out the Predict function with the following input. 
+
+### Deploy to your own FLY hosting
+- cd midterm-project
+- install fly and login 
+- - Reference here - https://github.com/DataTalksClub/machine-learning-zoomcamp/blob/master/05-deployment/workshop/README.md#deployment
+- fly launch --generate-name
+- go to deployed url/docs
+
+### Sample Input
+{
+    "year": 2020,
+    "gender": "Female",
+    "age": 45.0,
+    "location": "Washington",
+    "race_africanamerican": 0,
+    "race_asian": 0,
+    "race_caucasian": 1,
+    "race_hispanic": 0,
+    "race_other": 0,
+    "hypertension": 1,
+    "heart_disease": 0,
+    "smoking_history": "Never",
+    "bmi": 28.5,
+    "hba1c_level": 6.7,
+    "blood_glucose_level": 210
+}
