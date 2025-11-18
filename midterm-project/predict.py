@@ -34,6 +34,7 @@ from typing import Literal
 import pandas as pd
 import pickle
 import uvicorn
+import xgboost as xgb
 
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction import DictVectorizer
@@ -67,21 +68,24 @@ app = FastAPI(title="Diabetes-prediction")
 
 def load_model(modelfile):
     with open(modelfile, 'rb') as f_in:
-        pipeline, threshold_final = pickle.load(f_in)
-    return pipeline, threshold_final
+        (dv, model), threshold_final = pickle.load(f_in)
+    return dv, model, threshold_final
 
-pipeline, threshold_final = load_model(modelfile)
+dv, model, threshold_final = load_model(modelfile)
 
 print ("Model and threshold loaded : ", threshold_final)
 def predict_diabetes(patient_data: dict) -> dict:
     df = pd.DataFrame([patient_data])
     print (df)
-    X_dict = df.to_dict(orient='records')
-    prediction_proba = pipeline.predict_proba(X_dict)[0, 1]
-    prediction = int(prediction_proba >= threshold_final)
-    print (prediction_proba, prediction)
+ 
+    X_dict = dv.transform(df.to_dict(orient='records')) 
+    dmatrix = xgb.DMatrix(X_dict, feature_names=dv.get_feature_names_out().tolist())       
+    xgb_pred = model.predict(dmatrix)
+    probability = float(xgb_pred[0])
+    prediction = int(probability >= threshold_final)
+    print (probability, prediction)
     return PredictResponse(
-        diabetes_probability=prediction_proba,
+        diabetes_probability=probability,
         diabetes_prediction=prediction
     )
 
@@ -105,14 +109,10 @@ sample_input = {
 }
 #print(predict_diabetes(sample_input))
 
-def predict_single(patient):
-        result = pipeline.predict_proba(patient)[0, 1]
-        return float(result)
-
 
 @app.post("/predict")
 def predict(client: Patient) -> PredictResponse:
-    prediction = predict_diabetes(client.model_dump())
+    prediction = predict_diabetes(client.dict())
 
     return prediction
 

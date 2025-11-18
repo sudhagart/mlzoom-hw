@@ -40,11 +40,14 @@ import pandas as pd
 import numpy as np
 import pickle
 import os
+import xgboost as xgb
 
 targetcolumn = 'diabetes'
 C_final = 0.81
 threshold_final = 0.45
 modelfile = 'diabetes_model.bin'
+num_boost_round = 100
+eta_final = 0.1
 
 def load_data():
     os.system('wget  https://www.kaggle.com/api/v1/datasets/download/priyamchoksi/100000-diabetes-clinical-dataset -O diabetes_data.zip')
@@ -85,10 +88,49 @@ def train_model(df):
     pipeline.fit(X_full_train_dict, y_full_train)
     return pipeline
 
+
+def train_xgb(df):
+    numerical = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
+    numerical.remove(targetcolumn)
+    categorical = df.select_dtypes(include=['object']).columns.tolist()
+
+    df_full_train, df_test = train_test_split(df, test_size=0.2, random_state=1)
+    df_train, df_val = train_test_split(df_full_train, test_size=0.25, random_state=1)
+    df_train = df_train.reset_index(drop=True)
+    df_val = df_val.reset_index(drop=True)
+    df_test = df_test.reset_index(drop=True)
+    df_full_train = df_full_train.reset_index(drop=True)
+    y_train = df_train[targetcolumn].values
+    y_val = df_val[targetcolumn].values
+    y_test = df_test[targetcolumn].values
+    y_full_train = df_full_train[targetcolumn].values
+    del df_train[targetcolumn]
+    del df_val[targetcolumn]
+    del df_test[targetcolumn]
+    dv = DictVectorizer(sparse=False)
+    xgb_params = {
+        'eta': eta_final, 
+        'max_depth': 6,
+        'min_child_weight': 1,
+        
+        'objective': 'reg:squarederror',
+        'nthread': 8,
+        
+        'seed': 1,
+        'verbosity': 1,
+    }
+    train_dicts = df_full_train[categorical + numerical].to_dict(orient='records')
+    Xdf_train = dv.fit_transform(train_dicts)
+    features = dv.get_feature_names_out().tolist()
+    dtrain = xgb.DMatrix(Xdf_train, label=y_full_train, feature_names=features)
+    model = xgb.train(xgb_params, dtrain, num_boost_round=num_boost_round)
+    pipeline = (dv,model)
+    return pipeline
+
 def save_model(pipeline, modelfile):
     with open(modelfile, 'wb') as f_out:
         pickle.dump((pipeline, threshold_final), f_out)
 
 data = load_data()
-model = train_model(data)
+model = train_xgb(data)
 save_model(model, modelfile)
